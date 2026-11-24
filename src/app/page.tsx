@@ -8,6 +8,13 @@ import {
   type PropertyFilters,
 } from "@/lib/api";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+import { getToken } from "@/lib/auth-storage";
+import {
+  getWatchlist,
+  addToWatchlist,
+  removeFromWatchlist,
+} from "@/lib/watchlist";
 
 export default function Home() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -25,6 +32,7 @@ export default function Home() {
   const [totalProperties, setTotalProperties] = useState(0);
   const [savedIds, setSavedIds] = useState<number[]>([]);
   const [retryCount, setRetryCount] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -71,6 +79,43 @@ export default function Home() {
     return () => controller.abort();
   }, [page, propertyType, bedrooms, minPrice, maxPrice, retryCount]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadWatchlist() {
+      if (!getToken()) {
+        setSavedIds([]);
+        return;
+      }
+
+      try {
+        const response = await getWatchlist();
+
+        if (!cancelled) {
+          setSavedIds(response.data.map((property) => property.id));
+        }
+      } catch (error) {
+        if (cancelled) return;
+
+        if (
+          axios.isAxiosError(error) &&
+          error.response?.status === 401
+        ) {
+          setSavedIds([]);
+          return;
+        }
+
+        console.error("Failed to load watchlist:", error);
+      }
+    }
+
+    loadWatchlist();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function updateFilter(
     setter: (value: string) => void,
     value: string,
@@ -79,12 +124,38 @@ export default function Home() {
     setPage(1);
   }
 
-  function toggleSaved(id: number) {
-    setSavedIds((current) =>
-      current.includes(id)
-        ? current.filter((savedId) => savedId !== id)
-        : [...current, id],
-    );
+  async function toggleSaved(propertyId: number) {
+    if (!getToken()) {
+      router.push("/auth");
+      return;
+    }
+
+    const isSaved = savedIds.includes(propertyId);
+
+    try {
+      if (isSaved) {
+        await removeFromWatchlist(propertyId);
+      } else {
+        await addToWatchlist(propertyId);
+      }
+
+      setSavedIds((current) =>
+        isSaved
+          ? current.filter((id) => id !== propertyId)
+          : [...current, propertyId],
+      );
+    } catch (error) {
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 401
+      ) {
+        router.push("/auth");
+        return;
+      }
+
+      console.error("Failed to update watchlist:", error);
+      alert("Could not update your watchlist. Please try again.");
+    }
   }
 
   const visibleProperties = properties.filter((property) =>
@@ -101,18 +172,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <a href="/" className="text-2xl font-bold tracking-tight text-emerald-700">
-            landchecker
-          </a>
-
-          <span className="text-sm text-slate-500">
-            Property discovery
-          </span>
-        </div>
-      </header>
-
       <section className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-8">
           <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-emerald-700">

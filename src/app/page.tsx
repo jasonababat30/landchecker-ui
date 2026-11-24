@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   getProperties,
   type Property,
@@ -15,6 +14,7 @@ import {
   addToWatchlist,
   removeFromWatchlist,
 } from "@/lib/watchlist";
+import { usePropertyUpdates } from "@/hooks/usePropertyUpdates";
 
 export default function Home() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -115,6 +115,18 @@ export default function Home() {
       cancelled = true;
     };
   }, []);
+
+  const handlePropertyUpdated = useCallback((updatedProperty: Property) => {
+    setProperties((current) =>
+      current.map((property) =>
+        property.id === updatedProperty.id
+          ? { ...property, ...updatedProperty }
+          : property,
+      ),
+    );
+  }, []);
+
+  usePropertyUpdates(handlePropertyUpdated);
 
   function updateFilter(
     setter: (value: string) => void,

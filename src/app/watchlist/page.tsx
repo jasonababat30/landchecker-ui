@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
-import getWatchlist, { removeFromWatchlist } from "@/service/watchlist_api";
+import getWatchlist, { removeFromWatchlist } from "@/service/watchlist-api";
 import { getToken } from "@/lib/auth-storage";
 import type { Property } from "@/types";
 

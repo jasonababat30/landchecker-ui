@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import getProperties from "@/service/property_api";
+import getProperties from "@/service/property-api";
 import type { Property, PropertyFilters  } from "@/types";
 import { isAxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -11,10 +11,11 @@ import
 {
   addToWatchlist,
   removeFromWatchlist   
-} from "@/service/watchlist_api";
+} from "@/service/watchlist-api";
 import usePropertyUpdates from "@/hooks/usePropertyUpdates";
 import LoadingProperties from "@/components/home/LoadingProperties";
 import ErrorLoadingProperties from "@/components/home/ErrorLoadingProperties";
+import PropertyCard from "@/components/home/PropertyCard";
 
 const Home = () => {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -333,64 +334,14 @@ const Home = () => {
 
         {!loading && !error && properties.length > 0 && (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {properties.map((property) => {
-              const isSaved = savedIds.includes(property.id);
-
-              return (
-                <article
-                  key={property.id}
-                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                >
-                  <div className="flex h-36 items-center justify-center bg-gradient-to-br from-emerald-50 to-slate-100">
-                    <span className="text-5xl" aria-hidden="true">
-                      {property.property_type === "house"
-                        ? "🏡"
-                        : property.property_type === "apartment"
-                          ? "🏢"
-                          : "🏘️"}
-                    </span>
-                  </div>
-
-                  <div className="p-5">
-                    <div className="mb-3 flex items-start justify-between gap-3">
-                      <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold capitalize text-emerald-800">
-                        {property.property_type}
-                      </span>
-
-                      <button
-                        onClick={() => toggleSaved(property.id)}
-                        aria-pressed={isSaved}
-                        aria-label={
-                          isSaved
-                            ? `Remove ${property.title} from saved properties`
-                            : `Save ${property.title}`
-                        }
-                        className={`rounded-full border px-3 py-1.5 text-sm ${
-                          isSaved
-                            ? "border-emerald-700 bg-emerald-700 text-white"
-                            : "border-slate-300 text-slate-600 hover:border-emerald-700"
-                        }`}
-                      >
-                        {isSaved ? "♥ Saved" : "♡ Save"}
-                      </button>
-                    </div>
-
-                    <h3 className="text-lg font-semibold">{property.title}</h3>
-                    <p className="mt-2 text-2xl font-bold text-emerald-700">
-                      {formatPrice(property.price)}
-                    </p>
-
-                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4 text-sm text-slate-600">
-                      <span>
-                        🛏️ {property.bedrooms}{" "}
-                        {property.bedrooms === 1 ? "bedroom" : "bedrooms"}
-                      </span>
-                      <span className="capitalize">{property.status}</span>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+            {properties.map((property) => (
+              <PropertyCard
+                key={property.id}
+                property={property}
+                isSaved={savedIds.includes(property.id)}
+                onToggleSaved={toggleSaved}
+              />
+            ))}
           </div>
         )}
 

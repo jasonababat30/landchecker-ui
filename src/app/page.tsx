@@ -1,27 +1,26 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import {
-  getProperties,
-  type Property,
-  type PropertyFilters,
-} from "@/lib/api";
-import axios from "axios";
+import getProperties from "@/service/property_api";
+import type { Property, PropertyFilters  } from "@/types";
+import { isAxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { getToken } from "@/lib/auth-storage";
-import {
-  getWatchlist,
+import 
+  getWatchlist, 
+{
   addToWatchlist,
-  removeFromWatchlist,
-} from "@/lib/watchlist";
-import { usePropertyUpdates } from "@/hooks/usePropertyUpdates";
+  removeFromWatchlist   
+} from "@/service/watchlist_api";
+import usePropertyUpdates from "@/hooks/usePropertyUpdates";
 
-export default function Home() {
+const Home = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [search, setSearch] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [title, setTitle] = useState("");
   const [propertyType, setPropertyType] = useState("");
   const [bedrooms, setBedrooms] = useState("");
   const [minPrice, setMinPrice] = useState("");
@@ -37,7 +36,7 @@ export default function Home() {
   useEffect(() => {
     const controller = new AbortController();
 
-    async function loadProperties() {
+    const loadProperties = async () => {
       setLoading(true);
       setError(null);
 
@@ -50,6 +49,7 @@ export default function Home() {
       if (bedrooms) filters.bedrooms = bedrooms;
       if (minPrice) filters.min_price = minPrice;
       if (maxPrice) filters.max_price = maxPrice;
+      if (title) filters.title = title;
 
       try {
         const result = await getProperties(filters, controller.signal);
@@ -61,7 +61,7 @@ export default function Home() {
         if (controller.signal.aborted) return;
 
         setError(
-          axios.isAxiosError(err)
+          isAxiosError(err)
             ? err.response?.data?.error ?? err.message
             : err instanceof Error
               ? err.message
@@ -77,12 +77,20 @@ export default function Home() {
     void loadProperties();
 
     return () => controller.abort();
-  }, [page, propertyType, bedrooms, minPrice, maxPrice, retryCount]);
+  }, [
+    page, 
+    propertyType, 
+    bedrooms, 
+    minPrice, 
+    maxPrice, 
+    retryCount,
+    title
+  ]);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadWatchlist() {
+    const loadWatchlist = async () => {
       if (!getToken()) {
         setSavedIds([]);
         return;
@@ -98,7 +106,7 @@ export default function Home() {
         if (cancelled) return;
 
         if (
-          axios.isAxiosError(error) &&
+          isAxiosError(error) &&
           error.response?.status === 401
         ) {
           setSavedIds([]);
@@ -128,15 +136,32 @@ export default function Home() {
 
   usePropertyUpdates(handlePropertyUpdated);
 
-  function updateFilter(
+  useEffect(() => {
+    setPage(1);
+    
+    if (!searchTerm) {
+      setTitle("");
+      return;
+    };
+
+    const delayDebounce = setTimeout(() => {
+      setTitle(searchTerm);
+    }, 500)
+
+    return () => {
+      clearTimeout(delayDebounce);
+    }
+  }, [searchTerm]);
+
+  const updateFilter =(
     setter: (value: string) => void,
     value: string,
-  ) {
+  ) => {
     setter(value);
     setPage(1);
   }
 
-  async function toggleSaved(propertyId: number) {
+  const toggleSaved = async (propertyId: number) => {
     if (!getToken()) {
       router.push("/auth");
       return;
@@ -158,7 +183,7 @@ export default function Home() {
       );
     } catch (error) {
       if (
-        axios.isAxiosError(error) &&
+        isAxiosError(error) &&
         error.response?.status === 401
       ) {
         router.push("/auth");
@@ -170,11 +195,7 @@ export default function Home() {
     }
   }
 
-  const visibleProperties = properties.filter((property) =>
-    property.title.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  function formatPrice(price: number | string) {
+  const formatPrice = (price: number | string) => {
     return new Intl.NumberFormat("en-AU", {
       style: "currency",
       currency: "AUD",
@@ -202,8 +223,8 @@ export default function Home() {
           <label className="lg:col-span-2">
             <span className="mb-2 block text-sm font-medium">Search title</span>
             <input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="e.g. family house"
               className="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
             />
@@ -313,7 +334,7 @@ export default function Home() {
           </div>
         )}
 
-        {!loading && !error && visibleProperties.length === 0 && (
+        {!loading && !error && properties.length === 0 && (
           <div className="rounded-xl border border-slate-200 bg-white p-12 text-center">
             <h3 className="text-lg font-semibold">No properties found</h3>
             <p className="mt-2 text-sm text-slate-500">
@@ -322,9 +343,9 @@ export default function Home() {
           </div>
         )}
 
-        {!loading && !error && visibleProperties.length > 0 && (
+        {!loading && !error && properties.length > 0 && (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {visibleProperties.map((property) => {
+            {properties.map((property) => {
               const isSaved = savedIds.includes(property.id);
 
               return (
@@ -419,3 +440,5 @@ export default function Home() {
     </main>
   );
 }
+
+export default Home;

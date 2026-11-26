@@ -3,16 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import axios from "axios";
-
-import {
-  getWatchlist,
-  removeFromWatchlist,
-} from "@/lib/watchlist";
+import { isAxiosError } from "axios";
+import getWatchlist, { removeFromWatchlist } from "@/service/watchlist_api";
 import { getToken } from "@/lib/auth-storage";
-import type { Property } from "@/lib/api";
+import type { Property } from "@/types";
 
-export default function WatchlistPage() {
+const WatchlistPage = () => {
   const router = useRouter();
 
   const [properties, setProperties] = useState<Property[]>([]);
@@ -22,7 +18,7 @@ export default function WatchlistPage() {
   useEffect(() => {
     let cancelled = false;
 
-    async function loadWatchlist() {
+    const loadWatchlist = async () => {
       if (!getToken()) {
         router.replace("/auth");
         return;
@@ -38,7 +34,7 @@ export default function WatchlistPage() {
         if (cancelled) return;
 
         if (
-          axios.isAxiosError(err) &&
+          isAxiosError(err) &&
           err.response?.status === 401
         ) {
           router.replace("/auth");
@@ -60,7 +56,7 @@ export default function WatchlistPage() {
     };
   }, [router]);
 
-  async function handleRemove(propertyId: number) {
+  const handleRemove = async (propertyId: number) => {
     try {
       await removeFromWatchlist(propertyId);
 
@@ -73,7 +69,7 @@ export default function WatchlistPage() {
   }
 
   if (loading) {
-    return <main className="p-8">Loading your watchlist...</main>;
+    return <main className="p-8 bg-white min-h-screen text-black">Loading your watchlist...</main>;
   }
 
   return (
@@ -157,3 +153,5 @@ export default function WatchlistPage() {
     
   );
 }
+
+export default WatchlistPage;

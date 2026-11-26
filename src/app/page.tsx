@@ -137,15 +137,15 @@ const Home = () => {
   usePropertyUpdates(handlePropertyUpdated);
 
   useEffect(() => {
-    setPage(1);
-    
     if (!searchTerm) {
+      setPage(1);
       setTitle("");
       return;
     };
 
     const delayDebounce = setTimeout(() => {
       setTitle(searchTerm);
+      setPage(1);
     }, 500)
 
     return () => {

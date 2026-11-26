@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
@@ -10,6 +10,7 @@ import type { Property } from "@/types";
 import LoadingWatchlistItems from "@/components/watchlist/LoadingWatchlistItems";
 import PropertyWatchlistCard from "@/components/watchlist/PropertyWatchlistCard";
 import ErrorLoadingWatchlistProperties from "@/components/watchlist/ErrorLoadingWatchlistProperties";
+import usePropertyUpdates from "@/hooks/usePropertyUpdates";
 
 const WatchlistPage = () => {
   const router = useRouter();
@@ -58,6 +59,22 @@ const WatchlistPage = () => {
       cancelled = true;
     };
   }, [router]);
+
+  const handlePropertyUpdated = useCallback((updatedProperty: Property) => {   
+    setProperties((current: Property[]) =>  {
+      const isUpdatedPropertyInWatchlist = current.some(property => property.id === updatedProperty.id);
+      if (!isUpdatedPropertyInWatchlist) return current;
+
+      const watchlistProperties = [...current];
+      const indexOfUpdatedProperty = current.findIndex(property => property.id === updatedProperty.id);
+      
+      watchlistProperties.splice(indexOfUpdatedProperty, 1, updatedProperty);
+
+      return watchlistProperties;
+    });
+  }, []);
+
+  usePropertyUpdates(handlePropertyUpdated);
 
   const handleRemove = async (propertyId: number) => {
     try {

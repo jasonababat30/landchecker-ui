@@ -35,7 +35,13 @@ const PropertyWatchlistCard = ({
             {property.title}
           </h2>
 
-          <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-800">
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-bold ${
+              property.status === "available"
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
             {property.status}
           </span>
         </div>

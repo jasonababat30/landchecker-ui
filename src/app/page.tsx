@@ -128,13 +128,24 @@ const Home = () => {
   }, []);
 
   const handlePropertyUpdated = useCallback((updatedProperty: Property) => {
-    setProperties((current) =>
-      current.map((property) =>
-        property.id === updatedProperty.id
-          ? { ...property, ...updatedProperty }
-          : property,
-      ),
-    );
+    setProperties((current) => {
+      const isUpdatedPropertyInList = current.some(property => property.id === updatedProperty.id);
+      
+      // If the updated property is not in the list, add it to the beginning of the list
+      if (!isUpdatedPropertyInList) return [updatedProperty, ...current];
+
+      const updatedProperties = [...current];
+      const indexOfUpdatedProperty = current.findIndex(property => property.id === updatedProperty.id);
+      
+      // If the updated property is sold, remove it from the list
+      if (updatedProperty.status === "sold") {
+        updatedProperties.splice(indexOfUpdatedProperty, 1);
+        return updatedProperties;
+      }
+
+      updatedProperties.splice(indexOfUpdatedProperty, 1, updatedProperty);
+      return updatedProperties;
+    })
   }, []);
 
   usePropertyUpdates(handlePropertyUpdated);

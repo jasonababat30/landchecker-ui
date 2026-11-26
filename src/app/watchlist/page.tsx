@@ -7,6 +7,7 @@ import { isAxiosError } from "axios";
 import getWatchlist, { removeFromWatchlist } from "@/service/watchlist-api";
 import { getToken } from "@/lib/auth-storage";
 import type { Property } from "@/types";
+import LoadingWatchlistItems from "@/components/watchlist/LoadingWatchlistItems";
 
 const WatchlistPage = () => {
   const router = useRouter();
@@ -69,7 +70,7 @@ const WatchlistPage = () => {
   }
 
   if (loading) {
-    return <main className="p-8 bg-white min-h-screen text-black">Loading your watchlist...</main>;
+    return <LoadingWatchlistItems />;
   }
 
   return (

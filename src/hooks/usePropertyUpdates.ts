@@ -2,22 +2,17 @@
 
 import { useEffect } from "react";
 import { cable } from "@/lib/cable";
-import type { Property } from "@/lib/api";
+import type { PropertyUpdateMessage, Property } from "@/types";
 
-type PropertyUpdateMessage = {
-  event: "property_updated";
-  property: Property;
-};
-
-export function usePropertyUpdates(
+const usePropertyUpdates = (
   onPropertyUpdated: (property: Property) => void,
-) {
+) => {
   useEffect(() => {
     const subscription = cable.subscriptions.create(
       { channel: "PropertyChannel" },
       {
         connected() {
-            console.log("✅ Connected to PropertyChannel");
+            console.info("✅ Connected to PropertyChannel");
         },
 
         rejected() {
@@ -37,3 +32,5 @@ export function usePropertyUpdates(
     };
   }, [onPropertyUpdated]);
 }
+
+export default usePropertyUpdates;

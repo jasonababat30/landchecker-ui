@@ -31,3 +31,8 @@ export type PropertyFilters = {
 export type WatchlistResponse = {
   data: Property[];
 };
+
+export type PropertyUpdateMessage = {
+  event: "property_updated";
+  property: Property;
+};

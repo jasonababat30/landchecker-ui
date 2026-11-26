@@ -8,6 +8,7 @@ import getWatchlist, { removeFromWatchlist } from "@/service/watchlist-api";
 import { getToken } from "@/lib/auth-storage";
 import type { Property } from "@/types";
 import LoadingWatchlistItems from "@/components/watchlist/LoadingWatchlistItems";
+import PropertyWatchlistCard from "@/components/watchlist/PropertyWatchlistCard";
 
 const WatchlistPage = () => {
   const router = useRouter();
@@ -116,36 +117,11 @@ const WatchlistPage = () => {
         ) : (
           <section className="grid gap-4 sm:grid-cols-2">
             {properties.map((property) => (
-              <article
+              <PropertyWatchlistCard
                 key={property.id}
-                className="rounded-xl border p-5 shadow-sm"
-              >
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <h2 className="text-lg font-semibold">
-                    {property.title}
-                  </h2>
-                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-800">
-                    {property.status}
-                  </span>
-                </div>
-
-                <p className="text-2xl font-bold">
-                  ${Number(property.price).toLocaleString("en-AU")}
-                </p>
-
-                <p className="mt-2 text-gray-600">
-                  {property.bedrooms} bedrooms ·{" "}
-                  {property.property_type}
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => handleRemove(property.id)}
-                  className="mt-5 rounded-lg border border-red-200 px-4 py-2 text-red-700 hover:bg-red-50"
-                >
-                  Remove from watchlist
-                </button>
-              </article>
+                property={property}
+                onRemove={handleRemove}
+              />
             ))}
           </section>
         )}

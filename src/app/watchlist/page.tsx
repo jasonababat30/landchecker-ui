@@ -9,6 +9,7 @@ import { getToken } from "@/lib/auth-storage";
 import type { Property } from "@/types";
 import LoadingWatchlistItems from "@/components/watchlist/LoadingWatchlistItems";
 import PropertyWatchlistCard from "@/components/watchlist/PropertyWatchlistCard";
+import ErrorLoadingWatchlistProperties from "@/components/watchlist/ErrorLoadingWatchlistProperties";
 
 const WatchlistPage = () => {
   const router = useRouter();
@@ -93,38 +94,38 @@ const WatchlistPage = () => {
           </Link>
         </header>
 
-        {error && (
-          <p role="alert" className="mb-4 text-red-600">
-            {error}
-          </p>
-        )}
+        
+      {error ? (
+        <ErrorLoadingWatchlistProperties error={error} />
+      ) : properties.length === 0 ? (
+        <section className="rounded-xl border border-dashed p-10 text-center">
+          <h2 className="text-xl font-semibold">
+            Your watchlist is empty
+          </h2>
 
-        {properties.length === 0 ? (
-          <section className="rounded-xl border border-dashed p-10 text-center">
-            <h2 className="text-xl font-semibold">
-              Your watchlist is empty
-            </h2>
-            <p className="mt-2 text-gray-600">
-              Save a property from the search page to see it here.
-            </p>
-            <Link
-              href="/"
-              className="mt-5 inline-block rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            >
-              Explore properties
-            </Link>
-          </section>
-        ) : (
-          <section className="grid gap-4 sm:grid-cols-2">
-            {properties.map((property) => (
-              <PropertyWatchlistCard
-                key={property.id}
-                property={property}
-                onRemove={handleRemove}
-              />
-            ))}
-          </section>
-        )}
+          <p className="mt-2 text-gray-600">
+            Save a property from the search page to see it here.
+          </p>
+
+          <Link
+            href="/"
+            className="mt-5 inline-block rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          >
+            Explore properties
+          </Link>
+        </section>
+      ) : (
+        <section className="grid gap-4 sm:grid-cols-2">
+          {properties.map((property) => (
+            <PropertyWatchlistCard
+              key={property.id}
+              property={property}
+              onRemove={handleRemove}
+            />
+          ))}
+        </section>
+      )}
+
       </div>
     </main>
     

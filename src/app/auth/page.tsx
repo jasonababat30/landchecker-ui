@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { login, register } from "@/lib/auth";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -14,11 +15,15 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);
+
+    let submitStatus = "pending";
 
     try {
       if (mode === "login") {
@@ -27,9 +32,11 @@ export default function AuthPage() {
         await register({ email, password });
       }
 
+      submitStatus = "success";
       router.push("/");
       router.refresh();
     } catch (err: unknown) {
+      submitStatus = "failed";
       if (axios.isAxiosError(err)) {
         const responseError = err.response?.data?.error;
         const responseErrors = err.response?.data?.errors;
@@ -49,6 +56,11 @@ export default function AuthPage() {
         setError("Something went wrong. Please try again.");
       }
     } finally {
+      if (submitStatus === "success") {
+        setEmail("")
+        setPassword("")
+        setMode("login")
+      }
       setLoading(false);
     }
   }
@@ -122,6 +134,7 @@ export default function AuthPage() {
             />
           </div>
 
+          
           <div>
             <label
               htmlFor="password"
@@ -129,23 +142,47 @@ export default function AuthPage() {
             >
               Password
             </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete={
-                mode === "login" ? "current-password" : "new-password"
-              }
-              required
-              minLength={8}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="At least 8 characters"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-            <p className="mt-2 text-xs text-gray-500">
-              Use at least 8 characters.
-            </p>
+
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete={
+                  mode === "login" ? "current-password" : "new-password"
+                }
+                required
+                minLength={8}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="At least 8 characters"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                className="absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-r-lg"
+              >
+                {showPassword ? (
+                  <EyeOff size={20} aria-hidden="true" />
+                ) : (
+                  <Eye size={20} aria-hidden="true" />
+                )}
+              </button>
+            </div>
+
+            {
+              mode === "register" &&
+              (
+                <p className="mt-2 text-xs text-gray-500">
+                  Use at least 8 characters.
+                </p>
+              )
+            }
           </div>
+
 
           {error && (
             <div

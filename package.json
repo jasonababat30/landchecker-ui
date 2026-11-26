@@ -13,6 +13,7 @@
   "dependencies": {
     "@rails/actioncable": "^8.1.401",
     "axios": "^1.21.1",
+    "lucide-react": "^1.81.0",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0"

@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
-import getWatchlist, { removeFromWatchlist } from "@/service/watchlist_api";
+import getWatchlist, { removeFromWatchlist } from "@/service/watchlist-api";
 import { getToken } from "@/lib/auth-storage";
 import type { Property } from "@/types";
+import LoadingWatchlistItems from "@/components/watchlist/LoadingWatchlistItems";
+import PropertyWatchlistCard from "@/components/watchlist/PropertyWatchlistCard";
+import ErrorLoadingWatchlistProperties from "@/components/watchlist/ErrorLoadingWatchlistProperties";
+import usePropertyUpdates from "@/hooks/usePropertyUpdates";
 
 const WatchlistPage = () => {
   const router = useRouter();
@@ -56,6 +60,22 @@ const WatchlistPage = () => {
     };
   }, [router]);
 
+  const handlePropertyUpdated = useCallback((updatedProperty: Property) => {   
+    setProperties((current: Property[]) =>  {
+      const isUpdatedPropertyInWatchlist = current.some(property => property.id === updatedProperty.id);
+      if (!isUpdatedPropertyInWatchlist) return current;
+
+      const watchlistProperties = [...current];
+      const indexOfUpdatedProperty = current.findIndex(property => property.id === updatedProperty.id);
+      
+      watchlistProperties.splice(indexOfUpdatedProperty, 1, updatedProperty);
+
+      return watchlistProperties;
+    });
+  }, []);
+
+  usePropertyUpdates(handlePropertyUpdated);
+
   const handleRemove = async (propertyId: number) => {
     try {
       await removeFromWatchlist(propertyId);
@@ -69,7 +89,7 @@ const WatchlistPage = () => {
   }
 
   if (loading) {
-    return <main className="p-8 bg-white min-h-screen text-black">Loading your watchlist...</main>;
+    return <LoadingWatchlistItems />;
   }
 
   return (
@@ -91,63 +111,38 @@ const WatchlistPage = () => {
           </Link>
         </header>
 
-        {error && (
-          <p role="alert" className="mb-4 text-red-600">
-            {error}
+        
+      {error ? (
+        <ErrorLoadingWatchlistProperties error={error} />
+      ) : properties.length === 0 ? (
+        <section className="rounded-xl border border-dashed p-10 text-center">
+          <h2 className="text-xl font-semibold">
+            Your watchlist is empty
+          </h2>
+
+          <p className="mt-2 text-gray-600">
+            Save a property from the search page to see it here.
           </p>
-        )}
 
-        {properties.length === 0 ? (
-          <section className="rounded-xl border border-dashed p-10 text-center">
-            <h2 className="text-xl font-semibold">
-              Your watchlist is empty
-            </h2>
-            <p className="mt-2 text-gray-600">
-              Save a property from the search page to see it here.
-            </p>
-            <Link
-              href="/"
-              className="mt-5 inline-block rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            >
-              Explore properties
-            </Link>
-          </section>
-        ) : (
-          <section className="grid gap-4 sm:grid-cols-2">
-            {properties.map((property) => (
-              <article
-                key={property.id}
-                className="rounded-xl border p-5 shadow-sm"
-              >
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <h2 className="text-lg font-semibold">
-                    {property.title}
-                  </h2>
-                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-800">
-                    {property.status}
-                  </span>
-                </div>
+          <Link
+            href="/"
+            className="mt-5 inline-block rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          >
+            Explore properties
+          </Link>
+        </section>
+      ) : (
+        <section className="grid gap-4 sm:grid-cols-2">
+          {properties.map((property) => (
+            <PropertyWatchlistCard
+              key={property.id}
+              property={property}
+              onRemove={handleRemove}
+            />
+          ))}
+        </section>
+      )}
 
-                <p className="text-2xl font-bold">
-                  ${Number(property.price).toLocaleString("en-AU")}
-                </p>
-
-                <p className="mt-2 text-gray-600">
-                  {property.bedrooms} bedrooms ·{" "}
-                  {property.property_type}
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => handleRemove(property.id)}
-                  className="mt-5 rounded-lg border border-red-200 px-4 py-2 text-red-700 hover:bg-red-50"
-                >
-                  Remove from watchlist
-                </button>
-              </article>
-            ))}
-          </section>
-        )}
       </div>
     </main>
     

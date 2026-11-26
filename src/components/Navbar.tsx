@@ -23,8 +23,8 @@ export default function Navbar() {
 
   return (
     <nav className="border-b bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
-        <Link href="/" className="text-xl font-bold tracking-tight text-emerald-700">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+        <Link href="/" className="shrink-0 text-2xl font-bold tracking-tight text-emerald-700">
           Landchecker
         </Link>
 

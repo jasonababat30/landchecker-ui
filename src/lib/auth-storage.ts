@@ -1,14 +1,14 @@
 
 const TOKEN_KEY = "landchecker_token";
 
-export function saveToken(token: string) {
+export const saveToken = (token: string) => {
   localStorage.setItem(TOKEN_KEY, token);
 }
 
-export function getToken(): string | null {
+export const getToken = (): string | null => {
   return localStorage.getItem(TOKEN_KEY);
 }
 
-export function removeToken() {
+export const removeToken = () => {
   localStorage.removeItem(TOKEN_KEY);
 }

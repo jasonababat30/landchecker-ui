@@ -27,3 +27,7 @@ export type PropertyFilters = {
   per_page?: number;
   title?: string;
 };
+
+export type WatchlistResponse = {
+  data: Property[];
+};

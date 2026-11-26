@@ -1,5 +1,5 @@
 import api from "@/lib/axios";
-import { PropertyFilters, PaginatedResponse, Property } from '@/types';
+import type { PropertyFilters, PaginatedResponse, Property } from '@/types';
 
 const getProperties = async(
   filters: PropertyFilters = {},

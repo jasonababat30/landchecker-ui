@@ -1,11 +1,12 @@
 
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { login, register } from "@/lib/auth";
 import { Eye, EyeOff } from "lucide-react";
+import { getToken } from "@/lib/auth-storage";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -16,6 +17,12 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (getToken()) {
+      router.replace("/");
+    }
+  }, [router]);
 
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
